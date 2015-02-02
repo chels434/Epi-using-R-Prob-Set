@@ -81,20 +81,31 @@ axis(2, at = c(seq(1, 10, 1), seq(10, 100, 10),
 # http://www.medepi.net/data/hepb.txt. Read this data into a data frame. 
 # Using the R code below, plot a times series of AIDS and hepatitis B cases.
 library(dplyr)
+library(splitstackshape)
 hepb <- read.csv("http://www.medepi.net/data/hepb.txt", header = TRUE)
 hepb <- tbl_df(hepb)
 aids <- tbl_df(aids)
-years <- cbind(hepb$year, aids$year)
-cases <- (hepb, aids)
+str(hepb) # Cases and year are in one variable column
+hepb.split <- cSplit_f(hepb, "cases.year", sep = " ")
+names(hepb.split) <- c("cases", "year")
+str(hepb.split)
+aids$cases[aids$cases == "."] <- NA
+str(aids)
+aids.cases <- as.numeric(aids$cases)
 
-
-matplot(, cbind(hepb$cases, aids$cases), type = "l",
-        xlab = "Year", ylab = "Cases",
+matplot(c(1980, 2005), c(0,100000), type = "n", xlab = "Year",
+        ylab = "Cases",
         main = "Reported cases of Hepatitis B and AIDS,
-        United States, 1980-2003", xlim = c(1980, 2003))
-legend(x = "topleft", legend = c("Hepatitis B", "AIDS"), 
-       lwd = 2, lty = 1:2, col = 1:2, cex = 0.7)
-axis(2, at = seq(0, 10000, 1000), labels = seq(0, 10000, 1000), las = 2, tick = TRUE)
+        United States, 1980-2003", yaxt = "n")
+matlines(hepb.split, hepb.split$cases, type = "l")
+matlines(aids, aids$cases, type = "l", lty = 1, col = "black")
+legend(x = "topleft", legend = c("AIDS", "Hepatitis B"), 
+       lwd = 2, lty = 1:2, col = 1:2)
+axis(2, at = seq(0, 100000, 10000), labels = seq(0, 101000, 10000), 
+     tick = TRUE, las = 2, cex.axis = 0.6)
+axis(2, at = seq(0, 10, 0.1), labels = seq(0, 10, 0.1), cex.lab = 0.5,
+     las = 2)
+
 
 ## 3.6 ## ==============================================
 # Review data from the Evans cohort study in which 609 white males 
