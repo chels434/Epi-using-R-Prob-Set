@@ -1,5 +1,6 @@
 Epidemiology Using R: Chapter 3 problem set
 
+install.packages("rmarkdown")
 getwd()
 ls()
 rm(list=ls())
@@ -24,7 +25,6 @@ Last.name <- c("Smith", "Bone", "Key")
 Affiliation <- c("Duke", "UNC", "Duke")
 Email <- c("NA", "lb123@unc.edu", "sk345@duke.edu")
 Date <- Sys.Date()
-
 dat2 <- data.frame(First.name, Last.name, Affiliation, Email, Date); dat2
 
 
@@ -32,12 +32,26 @@ dat2 <- data.frame(First.name, Last.name, Affiliation, Email, Date); dat2
 # Review the United States data on AIDS cases by year available 
 # at http: //www.medepi.net/data/aids.txt. Read this data into a 
 # data frame. Graph a calendar time series of AIDS cases.
+library(dplyr)
+aids <- read.table("http://www.medepi.net/data/aids.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+aids <- tbl_df(aids)
+aids$cases[aids$cases == "."] <- NA
+str(aids)
+plot(aids$year, aids$cases, type = "l", xlab = "Cases", lwd =2, 
+     ylab = "Year", main = "Cases of AIDS by Year", yaxt = "n")
+axis(2, at = seq(0, 101000, 10000), labels = seq(0, 101000, 10000),
+     tick = TRUE, cex.axis = 0.6, las = 2)
 
-aids <- read.table("http://www.medepi.net/data/aids.txt", header = TRUE)
-aids
-class(aids)
-plot(aids$year, aids$cases, type = "l", xlab = "Cases", lwd =2, ylab = "Year", main = "Cases of AIDS by Year")
+axis(2, at = seq(0, 1000, 100), labels = seq(0, 1000, 100),
+     las = 2, tick = TRUE)
 
+
+
+aids <- select(aids, year, aids.cases)
+str(aids.cases)
+plot(aids$year, aids$cases, type = "l", xlab = "Cases", 
+     lwd =2, ylab = "Year", main = "Cases of AIDS by Year")
 ## 3.4 ## ==============================================
 # Review the United States data on measles cases by year available at 
 # http://www.medepi.net/data/measles.txt. Read this data into a data frame. 
@@ -74,9 +88,6 @@ axis(2, at = c(seq(1, 10, 1), seq(10, 100, 10),
      labels = FALSE, tick = TRUE)
 
 ## 3.5 ## ==============================================
-
-
-## 3.6 ## ==============================================
 # Review the United States data on hepatitis B cases by year available at 
 # http://www.medepi.net/data/hepb.txt. Read this data into a data frame. 
 # Using the R code below, plot a times series of AIDS and hepatitis B cases.
@@ -89,9 +100,7 @@ str(hepb) # Cases and year are in one variable column
 hepb.split <- cSplit_f(hepb, "cases.year", sep = " ")
 names(hepb.split) <- c("cases", "year")
 str(hepb.split)
-aids$cases[aids$cases == "."] <- NA
-str(aids)
-aids.cases <- as.numeric(aids$cases)
+
 
 matplot(c(1980, 2005), c(0,100000), type = "n", xlab = "Year",
         ylab = "Cases",
@@ -103,8 +112,7 @@ legend(x = "topleft", legend = c("AIDS", "Hepatitis B"),
        lwd = 2, lty = 1:2, col = 1:2)
 axis(2, at = seq(0, 100000, 10000), labels = seq(0, 101000, 10000), 
      tick = TRUE, las = 2, cex.axis = 0.6)
-axis(2, at = seq(0, 10, 0.1), labels = seq(0, 10, 0.1), cex.lab = 0.5,
-     las = 2)
+
 
 
 ## 3.6 ## ==============================================
@@ -192,21 +200,25 @@ onset.dt
 class(onset.dt)
 onset <- onset.dt[!is.na(onset.dt)]
 summary(onset)
+onset
 min(onset)
 
 
-hist(onset, breaks = 20, xlab = "Time of Onset", ylab = "Number of Cases", 
+hist(onset, breaks = 35, xlab = " ", ylab = "Number of Cases", 
      main = "Cases by Time of Onset, Oswego 1940",
-     xaxt = "n")
+     xaxt = "n", yaxt = "n")
 
 axis.POSIXct(1, at = seq(min(onset), max(onset), by = "hour"), 
-     labels = seq(as.POSIXct(min(onset)), as.POSIXct(max(onset)), by = "hour"), 
-     format = "%H:%M", cex.lab = 1)
+     labels = seq(min(onset), max(onset), by = "hour"), 
+     cex.lab = 0.3, las = 2)
+axis(2, at = seq(0, 5, 1), labels = seq(0, 5, 1), tick = TRUE, cex.lab = 0.5,
+     las = 2)
 
 
                  
 # b. Are there any cases for which the times of onset are inconsistent with 
 #   the general experience? How might they be explained?
+
 
 
 # c. How could the data be sorted by illness status and illness onset times?
@@ -226,7 +238,7 @@ help(package = MASS)
 library(MASS)
 
 
-# Converting meal timem to standard time.
+# Converting meal time to standard time.
 meal.dt <- paste("4/18/1940", oswego$meal.time, sep = " ")
 meal.dt <- strptime(meal.dt, "%m/%d/%Y%I:%M %p")
 meal.dt
@@ -237,7 +249,6 @@ mean.inc.period <- mean(inc.period, na.rm = TRUE)
 median.inc.period <- median(as.numeric(inc.period[!is.na(inc.period)]))
 range.inc.period <- range(as.numeric(inc.period[!is.na(inc.period)]))
 inc.period
-
 
 mean.inc.period
 median.inc.period

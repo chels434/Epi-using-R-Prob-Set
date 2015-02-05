@@ -1,0 +1,321 @@
+---
+title: "Epidemiology Using R Chapter 3 Problem Set"
+author: Chelsea McMullen
+date: 5 February 2015
+output: 
+  pdf_document:
+    highlight: "tango"
+---
+
+*****
+3.1) Using RStudio and the data from Table 3.1 on page 107 Create the following data frame:
+
+```{r, echo=TRUE}
+Status <- c("Dead", "Survived", "Dead", "Survived", "Dead", "Survived", 
+            "Dead", "Survived") 
+Treatment <- c("Tolbutamide", "Tolbutamide", "Placebo", "Placebo", "Tolbutamide", 
+               "Tolbutamide", "Placebo", "Placebo") 
+Agegrp <- c("<55", "<55", "<55", "<55", "55+", "55+", "55+", "55+")
+Freq <- c(8, 98, 5, 115, 22, 76, 16, 69)
+dat <- data.frame(Status, Treatment, Agegrp, Freq)
+dat
+```
+
+*****
+3.2) Select 3 to 5 classmates and collect data on first name, last name, affiliation, two email addresses, and today’s date. 
+Using a text editor, create a data frame with this data.
+
+```{r, echo=TRUE}
+First.name <- c("John", "Lucy", "Sandra")
+Last.name <- c("Smith", "Bone", "Key")
+Affiliation <- c("Duke", "UNC", "Duke")
+Email <- c("NA", "lb123@unc.edu", "sk345@duke.edu")
+Date <- Sys.Date()
+dat2 <- data.frame(First.name, Last.name, Affiliation, Email, Date)
+dat2
+```
+
+
+*****
+3.3) Review the United States data on AIDS cases by year available at 
+http: //www.medepi.net/data/aids.txt. Read this data into a data frame. 
+Graph a calendar time series of AIDS cases.
+
+```{r, echo=TRUE}
+aids <- read.table("http://www.medepi.net/data/aids.txt", header = TRUE)
+```
+
+```{r, echo=TRUE}
+plot(aids$year, aids$cases, type = "l", xlab = "Year", ylab = "Cases", 
+     main = "Cases of AIDS by Year")
+```
+
+> The number of cases ploted is much lower than the numbers given in the raw data. Therefore, I checked the structure and summary of the data frame: 
+
+```{r, echo=TRUE}
+str(aids)
+```
+
+> Results show that the variable `aids$cases` is classified as a factor. If we convert the local data frame to a different type of data frame using the `tbl_df()` function from `dplyr`, the cases are displayed as characters, which are more easily plotted. We should also account for the missing variables in years 1980-1984.
+
+
+```{r, message=FALSE}
+library(dplyr)
+```
+
+```{r, echo=TRUE}
+aids.cases <- as.character(aids$cases)
+aids.cases[aids.cases == "."] <- NA
+str(aids.cases)
+```
+
+> Now we have a more accurate plot.
+
+```{r, echo=TRUE}
+plot(aids$year, aids.cases, type = "l", xlab = "Cases", lwd =2, 
+     ylab = "Year", main = "Cases of AIDS by Year", yaxt = "n")
+axis(2, at = seq(0, 101000, 10000), labels = seq(0, 101000, 10000),
+     tick = TRUE, cex.axis = 0.6, las = 2)
+```
+
+*****
+3.4) Review the United States data on measles cases by year available at 
+http://www.medepi.net/data/measles.txt. Read this data into a data frame. 
+Graph a calendar time series of measle cases using an arithmetic and 
+semi-logarithmic scale.
+
+```{r, echo=TRUE}
+measles <- read.table("http://www.medepi.net/data/measles.txt", header = TRUE)
+```
+
+
+**Arithmetic Plot**
+
+
+```{r, echo=TRUE}
+plot(measles$year, measles$cases/1000, type = "l", 
+     xlab = "Year", ylab = "Measles Cases (x1000)", 
+     main = "Measles cases reported in the US, 1950-2001",
+     axes = FALSE, xlim = c(1950, 2001), ylim = c(0,1000),
+     xaxs = "i", yaxs = "i")
+axis(1, at = measles$year, labels = FALSE, tick = TRUE)
+axis(1, at = seq(1950, 2000, 5), labels = seq(1950, 2000, 5),
+     tick = TRUE, tcl = -1)
+axis(2, at = seq(0, 1000, 100), labels = seq(0, 1000, 100),
+     las = 2, tick = TRUE)
+```
+
+**Semi-logarithmic Plot**
+
+```{r, echo=TRUE}
+plot(measles$year, measles$cases, type = "l", log = "y",
+     xlab = "Year", ylab = "Measles Cases (log)", 
+     main = "Measles cases reported in the US, 1950-2001",
+     axes = FALSE, xlim = c(1950, 2001),
+     xaxs = "i", yaxs = "i")
+axis(1, at = measles$year, labels = FALSE, tick = TRUE)
+axis(1, at = seq(1950, 2000, 5), labels = seq(1950, 2000, 5),
+     tick = TRUE, tcl = -1, cex.axis = 1)
+axis(2, at = c(seq(1, 10, 1), seq(10, 100, 10),
+    seq(100, 1000, 100), seq(1000, 10000, 1000),
+    seq(10000, 100000, 10000), seq(100000, 1000000, 100000)),
+    labels = FALSE, tick = TRUE, cex.axis = 1)
+axis(2, at = c(1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 
+               50000, 100000, 500000, 1000000),
+     labels = c("1", "5","10", "50", "100", "500", "1,000", 
+                "5,000", "10,000", "50,000", "100,000", "500,000",
+                "1,000,000"), 
+     las = 2, tick = TRUE, tcl = -0.7, cex.axis = 0.5)
+```
+
+*****
+3.5) Review the United States data on hepatitis B cases by year available at http://www.medepi.net/data/hepb.txt. Read this data into a data frame. Using the R code below, plot a times series of AIDS and hepatitis B cases.
+
+```{r, message=FALSE}
+library(dplyr)
+library(splitstackshape)
+```
+
+```{r}
+hepb <- read.csv("http://www.medepi.net/data/hepb.txt", header = TRUE)
+hepb <- tbl_df(hepb)
+str(hepb)
+```
+
+> We can see from the structure of `hepb` that it onle contains one variable column, `cases.year`. This is not useful to us, as we want just one variable per column. We can use the 
+`splitstackshape` package to split the two columns. 
+
+```{r, warning=FALSE}
+hepb.split <- cSplit_f(hepb, "cases.year", sep = " ")
+names(hepb.split) <- c("cases", "year")
+str(hepb.split)
+```
+
+> `hepb.split` now has one column for the `cases` variable, and one column for `year`.
+
+```{r, echo=TRUE, warning=FALSE}
+matplot(c(1980, 2005), c(0,100000), type = "n", xlab = "Year",
+        ylab = "Cases",
+        main = "Reported cases of Hepatitis B and AIDS,
+        United States, 1980-2003", yaxt = "n")
+matlines(hepb.split, hepb.split$cases, type = "l")
+matlines(aids, aids$cases, type = "l", lty = 1, col = "black")
+legend(x = "topleft", legend = c("AIDS", "Hepatitis B"), 
+       lwd = 2, lty = 1:2, col = 1:2)
+axis(2, at = seq(0, 100000, 10000), labels = seq(0, 101000, 10000), 
+     tick = TRUE, las = 2, cex.axis = 0.6)
+```
+
+******
+3.6) # Review data from the Evans cohort study in which 609 white males were followed for 7 years, with coronary heart disease as the 
+outcome of interest (http://www.medepi.net/data/evans.txt). 
+The data dictionary is provided in Table 3.10.
+
+```{r}
+chd <- read.table("http://www.medepi.net/data/evans.txt", header = TRUE)
+```
+
+a. Recode the binary variables (0, 1) into factors with 2 levels.
+```{r}
+chd$chd <- ifelse(chd$chd == 0, "no", "yes")
+chd$cat <- ifelse(chd$cat == 0, "normal", "high")
+chd$smk <- ifelse(chd$smk == 0, "never", "ever")
+chd$ecg <- ifelse(chd$ecg == 0, "no abnormality", "abnormality")
+chd$hpt <- ifelse(chd$hpt == 0, "no", "yes")
+chd <- tbl_df(chd)
+chd
+```
+
+b. Discretize age into a factor with more than 2 levels.
+```{r}
+agelab <- c("30-40", "40-50", "50-60", "60-70", ">70")
+agegrp <- cut(chd$age, breaks = c(30, 40, 50, 60, 70, 80), 
+              right = FALSE, labels = agelab)
+table(agegrp)
+```
+
+
+c. Create a new hyptertension categorical variable based on the current
+classification scheme17:
+  + Normal: SBP< 120 and DBP< 80;
+  + Prehypertension: SBP=[120, 140) or DBP=[80, 90); 
+  + Hypertension-Stage 1: SBP=[140, 160) or DBP=[90, 100); 
+  + Hypertension-Stage 2: SBP≥ 160 or DBP≥ 100.
+
+```{r}
+hyplab <- c("Normal", "Pre-HT", "HT-Stage 1", "HT-Stage 2")
+hyp <- c(chd$dbp & chd$sbp)
+hyp[chd$dbp < 80 & chd$sbp < 120] <- "Normal"
+hyp[(chd$dbp >= 80 & chd$dbp <= 90) | (chd$sbp >= 120 & chd$sbp <= 140)] <- "Pre-HT"
+hyp[(chd$dbp >= 90 & chd$dbp <= 100) | (chd$sbp >= 140 & chd$sbp <= 160)] <- "HT-Stage 1"
+hyp[chd$dbp >= 100 | chd$sbp >= 160] <- "HT-Stage 2"
+table(hyp)
+```
+
+d. Using R, construct a contigency table comparing the old and new hyper- tension variables.
+```{r}
+hyp <- factor(hyp, levels = hyplab, ordered = T)
+hpt <- ifelse(chd$hpt == "no", "Not Hypertensive", "Hypertensive")
+hpt.vs.hyp <- table(hpt, hyp)
+hpt.vs.hyp
+```
+
+*****
+3.7)  Review the California 2004 surveillance data on human West Nile virus cases available at http://www.medepi.net/data/wnv/wnv2004raw. txt. Read in the data, taking into account missing values. Convert the calendar dates into the international standard format. Using the write.table function export the data as an ASCII text file.
+
+```{r}
+wnv <- read.csv("http://www.medepi.net/data/wnv/wnv2004raw.txt", 
+                header = TRUE)
+wnv[wnv == "." | wnv == "Unknown"] <- NA
+wnv$date.onset <- as.Date(wnv$date.onset, "%m/%d/%Y")
+wnv$date.tested <- as.Date(wnv$date.tested, "%m/%d/%Y")
+str(wnv)
+```
+
+Create a new csv file in the working directory. 
+
+```
+write.csv(wnv, "wnv.csv")
+```
+
+*****
+3.8) 
+```{r}
+oswego <- read.table("http://www.medepi.net/data/oswego/oswego.txt", header = TRUE)
+```
+
+a. Using RStudio plot the cases by time of onset of illness (include 
+appropriate labels and title). What does this graph tell you? 
+(Hint: Process the text data and then use the hist function.)
+
+```{r}
+onset.date <- paste(paste(oswego$onset.date, "/1940", sep = "",
+                          oswego$onset.time), sep = " ")
+onset.dt <- strptime(onset.date, "%m/%d/%Y%I:%M %p")
+onset <- onset.dt[!is.na(onset.dt)]
+onset
+```
+
+```{r, echo=TRUE}
+hist(onset, breaks = 35, xlab = " ", 
+     ylab = "Number of Cases", 
+     main = "Cases by Time of Onset, Oswego 1940", 
+     freq = TRUE, xaxt = "n")
+axis.POSIXct(1, at = seq(min(onset), max(onset), by = "hour"), 
+     labels = seq(min(onset), max(onset), by = "hour"), 
+     cex.lab = 0.3, las = 2)
+```
+
+b. Are there any cases for which the times of onset are inconsistent with 
+the general experience? How might they be explained?
+
+> There is one early onset case, and one late onset case. The early onset could have been someone who prepared the infected food source and consumed it before the rest, or an anomoly in incubation period. The late onset outlier could have been someone who ate the source of infection later than they rest, someone with a longer than normal incubation period, or someone who acquired a secondary infection from a sick family member or friend. 
+
+c. How could the data be sorted by illness status and illness onset times?
+
+```{r}
+oswego.df <- tbl_df(oswego)
+ill.onset <- select(oswego.df, onset.date, onset.time)
+ill.onset <- arrange(oswego.df, desc(ill), onset.date, onset.time)
+ill.onset
+```
+
+d. Where possible, calculate incubation periods and illustrate their 
+distribution with an appropriate graph. Use the truehist function in 
+the MASS package. Determine the mean, median, and range of the incubation period.
+
+```{r, message=FALSE}
+library(MASS)
+```
+
+```{r}
+meal.dt <- paste("4/18/1940", oswego$meal.time, sep = " ")
+meal.dt <- strptime(meal.dt, "%m/%d/%Y%I:%M %p")
+```
+
+```{r}
+inc.period <- onset.dt - meal.dt
+inc.period[!is.na(inc.period)]
+mean.inc.period <- mean(inc.period, na.rm = TRUE)
+median.inc.period <- median(as.numeric(inc.period[!is.na(inc.period)]))
+range.inc.period <- range(as.numeric(inc.period[!is.na(inc.period)]))
+```
+
+```{r, results='hide'}
+mean.inc.period
+median.inc.period
+range.inc.period
+```
+
+* Mean Incubation Period: `r mean.inc.period` 
+* Median Incubation Period: `r median.inc.period`
+* Range of Incubation Periods: `r range.inc.period`  
+
+
+```{r, echo=TRUE, warning=FALSE}
+truehist(as.numeric(inc.period), nbins = 10, xlab = "Incubation Period (hours)",
+         ylab = "Proportion of Cases", main = "Range of Incubation Periods, Oswego 1940",
+         col = "skyblue", xlim = c(3, 8), ylim = c(0, 1), labels = TRUE)
+```
+
+
